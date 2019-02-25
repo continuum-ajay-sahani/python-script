@@ -1,6 +1,6 @@
-import socket 
-import time
-import datetime
+#!/usr/bin/python
+
+import socket, time, datetime
 
 # topic structure
 class Topic(object):

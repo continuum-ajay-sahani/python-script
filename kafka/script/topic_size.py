@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import os, json, sys, common, logging, time
 
 output_directory = "./kafka/output"

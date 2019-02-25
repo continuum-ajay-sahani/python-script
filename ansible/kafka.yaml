@@ -1,7 +1,0 @@
-- name: Move Kafka script to the broker machine
-  hosts: localhost
-  tasks:
-  - name: Clean Kafka script path
-    file:
-        state: absent
-        path: "{{ artifact_path }}/"
