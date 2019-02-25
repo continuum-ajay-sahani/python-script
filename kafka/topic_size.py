@@ -39,7 +39,7 @@ def get_size(start_path):
     for dirpath, _, filenames in os.walk(start_path):
         for f in filenames:
             fp = os.path.join(dirpath, f)
-            total_size += os.path.getsize(fp)
+            total_size += os.path.getsize(fp)   
     return total_size
 
 # init total disk size utilized
@@ -57,6 +57,7 @@ for folder in dirs:
     path = kafka_log_path+"/"+folder
     folder_size = get_size(path)
     topic_name = get_topic_name(folder)
+    print path + ":" +str(folder_size) 
     if topic_name not in folder_info:
         folder_info[topic_name]=folder_size
         continue
@@ -65,12 +66,16 @@ for folder in dirs:
     total_size += folder_size
     folder_info[topic_name] = total_size
 
+print folder_info
+
 # format output and store result
 def format_output():
     topics = []
+    print "Total Disk Utilized="+str(total_disk_utilized)
     for topic_name in folder_info:
         value = folder_info[topic_name]
-        percent_value = value/total_disk_utilized *100
+        percent_value = (value*100)/(total_disk_utilized)
+        print topic_name+" : "+ str(value)+",percentage="+str(percent_value)
         percent_value = round(percent_value, 2)
         topic = common.Topic(topic_name, percent_value)
         topics.append(topic)
