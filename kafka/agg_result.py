@@ -11,11 +11,15 @@ topic_info = {}
 def init_input_args():
     global result_days, result_directory, output_directory
     if len(sys.argv) > 1:
-        kafka_log_path = sys.argv[1]
+        result_days = sys.argv[1]
     if len(sys.argv) > 2:
-        output_directory = sys.argv[2]    
+        output_directory = sys.argv[2]
+    if len(sys.argv) > 3:
+        result_directory = sys.argv[3]        
 
 init_input_args()
+
+print "Result Day="+str(result_days)+" ,Output Directory="+output_directory+" ,Result Directory="+result_directory
 
 # delete result directory if exist
 if os.path.exists(result_directory):
