@@ -1,4 +1,4 @@
-import os, shutil, datetime, time, json, common, sys
+import os, shutil, datetime, time, json, common, sys,logging
 
 result_directory = "./kafka/result"
 output_directory = "./kafka/output"
@@ -6,6 +6,10 @@ offset = 0
 result_days = 30
 file_arr = []
 topic_info = {}
+
+logging.basicConfig(filename="kafka_agg_result.log", level=logging.INFO)
+logging.info("----------------Script Started-----------------")
+logging.info(common.get_file_name())
 
 # fetch input argumnet and init value
 def init_input_args():
@@ -19,7 +23,7 @@ def init_input_args():
 
 init_input_args()
 
-print "Result Day="+str(result_days)+" ,Output Directory="+output_directory+" ,Result Directory="+result_directory
+logging.info("Result Day="+str(result_days)+" ,Output Directory="+output_directory+" ,Result Directory="+result_directory)
 
 # delete result directory if exist
 if os.path.exists(result_directory):
@@ -44,7 +48,8 @@ def list_output_files(start_path):
 list_output_files(output_directory)
 
 if len(file_arr)<1:
-    print "No file found in output directory with in given interval"
+    logging.info("No file found in output directory with in given interval")
+    logging.info("-------------Script Ended-------------")
     sys.exit()
 
 # store topic detail
@@ -112,4 +117,6 @@ def process_output_file():
         
 
 process_output_file()
+
+logging.info("-------------Script Ended-------------")
 

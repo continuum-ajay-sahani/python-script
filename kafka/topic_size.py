@@ -9,6 +9,10 @@ folder_info = {}
 folder_arr = []
 total_disk_utilized = 0
 
+logging.basicConfig(filename="kafka_topic_size.log", level=logging.INFO)
+logging.info("----------------Script Started-----------------")
+logging.info(common.get_file_name())
+
 # fetch input argumnet and init value
 def init_input_args():
     global kafka_log_path, output_directory
@@ -19,8 +23,8 @@ def init_input_args():
 
 init_input_args()
 
-print "Kafka Log Path Directory="+kafka_log_path
-print "Script Output Directory="+output_directory
+logging.info("Kafka Log Path Directory="+kafka_log_path)
+logging.info("Script Output Directory="+output_directory)
 
 # create output directory
 if not os.path.exists(output_directory):
@@ -66,12 +70,12 @@ for folder in dirs:
     total_size += folder_size
     folder_info[topic_name] = total_size
 
-print folder_info
+logging.info(folder_info)
 
 # format output and store result
 def format_output():
     topics = []
-    print "Total Disk Utilized="+str(total_disk_utilized)
+    logging.info("Total Disk Utilized="+str(total_disk_utilized))
     for topic_name in folder_info:
         value = folder_info[topic_name]
         percent_value = (value*100)/(total_disk_utilized)
@@ -88,4 +92,6 @@ def format_output():
     common.create_output_file(file_name,output_data)
 
 format_output()
+
+logging.info("-------------Script Ended-------------")
 
