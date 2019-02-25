@@ -1,7 +1,4 @@
-import os
-import json
-import sys
-import common
+import os, json, sys, common, logging
 
 output_directory = "./kafka/output"
 kafka_log_path = "/tmp/kafka-logs"

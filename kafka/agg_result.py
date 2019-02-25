@@ -1,4 +1,4 @@
-import os, shutil, datetime, time, json, common, sys,logging
+import os, shutil, datetime, time, json, common, sys, logging
 
 result_directory = "./kafka/result"
 output_directory = "./kafka/output"
