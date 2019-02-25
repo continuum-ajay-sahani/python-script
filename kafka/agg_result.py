@@ -1,19 +1,25 @@
-import os
-import datetime
-import time
-import json
-import common
+import os, shutil, datetime, time, json, common, sys
 
-result_directory = "./result"
-output_directory = "./output"
+result_directory = "./kafka/result"
+output_directory = "./kafka/output"
 offset = 0
-result_days = 3
+result_days = 30
 file_arr = []
 topic_info = {}
 
+# fetch input argumnet and init value
+def init_input_args():
+    global result_days, result_directory, output_directory
+    if len(sys.argv) > 1:
+        kafka_log_path = sys.argv[1]
+    if len(sys.argv) > 2:
+        output_directory = sys.argv[2]    
+
+init_input_args()
+
 # delete result directory if exist
 if os.path.exists(result_directory):
-    os.removedirs(result_directory)
+    shutil.rmtree(result_directory)
 
 # now create result directory
 os.makedirs(result_directory)  
@@ -32,6 +38,10 @@ def list_output_files(start_path):
     file_arr.sort(reverse = True)
 
 list_output_files(output_directory)
+
+if len(file_arr)<1:
+    print "No file found in output directory with in given interval"
+    sys.exit()
 
 # store topic detail
 def store_topic_detail(name,pu):
@@ -75,18 +85,22 @@ def format_output(topics,info):
     inf = common.Output(host_name,host_ip,common.get_current_time(), total_size, topics)
     return json.dumps(inf, default=lambda o: o.__dict__)
 
+# get output file content
+def get_output_file_content(file_name):
+     path = output_directory+"/"+file_name
+     f = open(path, "r")
+     content = str(f.read())
+     f.close()
+     return content
+
 # iterate each file and parse data
 def process_output_file():
     index = 0
+    latest_file_info = get_output_file_content(file_arr[0])
     for file_name in file_arr:
-        path = output_directory+"/"+file_name
-        f = open(path, "r")
-        content = str(f.read())
-        if index == 0:
-            latest_file_info = content
-        index +=1
-        f.close()
+        content = get_output_file_content(file_name)
         parse_content(content)
+        
     topic_output = topic_average()
     final_output = format_output(topic_output,latest_file_info)
     file_name = result_directory+"/"+common.get_file_name()+".json"

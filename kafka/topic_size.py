@@ -1,12 +1,26 @@
 import os
 import json
+import sys
 import common
 
-output_directory = "./output"
+output_directory = "./kafka/output"
 kafka_log_path = "/tmp/kafka-logs"
 folder_info = {}
 folder_arr = []
 total_disk_utilized = 0
+
+# fetch input argumnet and init value
+def init_input_args():
+    global kafka_log_path, output_directory
+    if len(sys.argv) > 1:
+        kafka_log_path = sys.argv[1]
+    if len(sys.argv) > 2:
+        output_directory = sys.argv[2]    
+
+init_input_args()
+
+print "Kafka Log Path Directory="+kafka_log_path
+print "Script Output Directory="+output_directory
 
 # create output directory
 if not os.path.exists(output_directory):
