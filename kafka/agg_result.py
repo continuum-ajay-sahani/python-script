@@ -15,7 +15,7 @@ logging.info(common.get_file_name())
 def init_input_args():
     global result_days, result_directory, output_directory
     if len(sys.argv) > 1:
-        result_days = sys.argv[1]
+        result_days = int(sys.argv[1])
     if len(sys.argv) > 2:
         output_directory = sys.argv[2]
     if len(sys.argv) > 3:

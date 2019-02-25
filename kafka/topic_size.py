@@ -1,10 +1,11 @@
-import os, json, sys, common, logging
+import os, json, sys, common, logging, time
 
 output_directory = "./kafka/output"
 kafka_log_path = "/tmp/kafka-logs"
 folder_info = {}
 folder_arr = []
 total_disk_utilized = 0
+retention_period = 60
 
 logging.basicConfig(filename="kafka_topic_size.log", level=logging.INFO)
 logging.info("----------------Script Started-----------------")
@@ -16,12 +17,15 @@ def init_input_args():
     if len(sys.argv) > 1:
         kafka_log_path = sys.argv[1]
     if len(sys.argv) > 2:
-        output_directory = sys.argv[2]    
+        output_directory = sys.argv[2]
+    if len(sys.argv) > 3:
+        retention_period = int(sys.argv[1])        
 
 init_input_args()
 
 logging.info("Kafka Log Path Directory="+kafka_log_path)
 logging.info("Script Output Directory="+output_directory)
+logging.info("Retention Period="+str(retention_period))
 
 # create output directory
 if not os.path.exists(output_directory):
@@ -58,7 +62,7 @@ for folder in dirs:
     path = kafka_log_path+"/"+folder
     folder_size = get_size(path)
     topic_name = get_topic_name(folder)
-    print path + ":" +str(folder_size) 
+    logging.info(path + ":" +str(folder_size)) 
     if topic_name not in folder_info:
         folder_info[topic_name]=folder_size
         continue
@@ -76,7 +80,7 @@ def format_output():
     for topic_name in folder_info:
         value = folder_info[topic_name]
         percent_value = (value*100)/(total_disk_utilized)
-        print topic_name+" : "+ str(value)+",percentage="+str(percent_value)
+        logging.info(topic_name+" : "+ str(value)+",percentage="+str(percent_value))
         percent_value = round(percent_value, 2)
         topic = common.Topic(topic_name, percent_value)
         topics.append(topic)
@@ -89,6 +93,30 @@ def format_output():
     common.create_output_file(file_name,output_data)
 
 format_output()
+
+# init retention offset value
+retention_offset=time.time()-retention_period*24*60*60
+
+# get all old files (retantion policy expired)
+def get_old_files():
+    file_arr = []
+    for _, _, filenames in os.walk(output_directory):
+        for f in filenames:
+            file_timestamp=int(str(f).split(".")[0])
+            if file_timestamp<retention_offset:
+                file_arr.append(str(f))
+            
+    return file_arr
+
+# delete all the expired files (retention days)
+def delete_expired_files():
+    old_files=get_old_files()
+    for f in old_files:
+        path = output_directory+"/"+f
+        os.remove(path)
+        logging.info("File Deleted ="+path)
+
+delete_expired_files()        
 
 logging.info("-------------Script Ended-------------")
 
