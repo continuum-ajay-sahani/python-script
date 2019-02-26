@@ -2,12 +2,13 @@
 
 import os, shutil, datetime, time, json, common, sys, logging
 
-result_directory = "./kafka/result"
-output_directory = "./kafka/output"
+result_directory = "./result"
+output_directory = "./output"
 offset = 0
 result_days = 30
 file_arr = []
 topic_info = {}
+host_data = {}
 
 logging.basicConfig(filename="kafka_agg_result.log", level=logging.INFO)
 logging.info("----------------Script Started-----------------")
@@ -66,7 +67,19 @@ def store_topic_detail(name,pu):
 # parse content of file
 def parse_content(content):
     rm = json.loads(content)
-    topics=rm["topics"]
+    host_name = rm["host_name"]
+    host_ip = rm["host_ip"]
+    ukey = host_name +" : "+host_ip
+    total_disk_utilized = rm["total_disk_utilized"]
+    if ukey not in host_data:
+        uts = []
+        host_data[ukey] = uts
+
+    uts = host_data[ukey]
+    uts.append(total_disk_utilized)
+    host_data[ukey] = uts
+
+    topics = rm["topics"]
     for topic in topics:
         name = topic["name"]
         pu = topic["percent_utilization"]
@@ -90,9 +103,17 @@ def topic_average():
 # format output and store result
 def format_output(topics,info):
     rm = json.loads(info)
-    host_name = rm["host_name"]
-    host_ip = rm["host_ip"]
-    total_size = rm["total_disk_utilized"]
+    host_names = ""
+    host_ips = ""
+    total_dus = 0
+    for host in host_data:
+        total_dus += average(host_data[host])
+        keys = host.split(" : ")
+        host_names += keys[0]+" "
+        host_ips += keys[1]+" "
+    host_name = host_names
+    host_ip = host_ips
+    total_size = total_dus
     inf = common.Output(host_name,host_ip,common.get_current_time(), total_size, topics)
     return json.dumps(inf, default=lambda o: o.__dict__)
 
@@ -111,7 +132,7 @@ def process_output_file():
     for file_name in file_arr:
         content = get_output_file_content(file_name)
         parse_content(content)
-        
+   
     topic_output = topic_average()
     final_output = format_output(topic_output,latest_file_info)
     file_name = result_directory+"/"+common.get_file_name()+".json"

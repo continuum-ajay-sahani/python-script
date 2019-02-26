@@ -2,7 +2,7 @@
 
 import os, json, sys, common, logging, time
 
-output_directory = "./kafka/output"
+output_directory = "./output"
 kafka_log_path = "/tmp/kafka-logs"
 folder_info = {}
 folder_arr = []

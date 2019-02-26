@@ -1,16 +1,17 @@
 - name: Move Kafka script to the broker machine
   hosts: localhost
+  
   tasks:
   - name: Creates directory
     file:
         state: directory
-        path: "/home/youraj/python-ws/ansible-output/kafka"
+        path: /home/youraj/python-ws/ansible-output/kafka
         mode: 0755
 
   - name: Clean Kafka script path
     file:
         state: absent
-        path: "/home/youraj/python-ws/ansible-output/kafka/script"
+        path: /home/youraj/python-ws/ansible-output/kafka
 
   - name: Copy Kafka script folder
     copy:
@@ -32,4 +33,6 @@
       recurse: yes   
 
   - name: Execute command to get Kafka disk utilization
-    shell: pwd && /home/youraj/python-ws/ansible-output/kafka/script/topic_size.py 
+    command: /home/youraj/python-ws/ansible-output/kafka/script/topic_size.py 
+    args:
+      chdir: /home/youraj/python-ws/ansible-output/kafka

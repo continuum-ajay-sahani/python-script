@@ -1,8 +1,8 @@
 - name: To test command
   hosts: localhost
   tasks:
-  - name: Make my directory tree readable
-    file:
-      path: /home/youraj/python-ws/ansible-output/kafka/script
-      mode: u=rwX,g=rwX,o=rwX
-      recurse: yes
+  - name: Go to the folder and execute command
+    command: /home/youraj/python-ws/ansible-output/kafka/script/topic_size.py 
+    args:
+      chdir: /home/youraj/python-ws/ansible-output/kafka
+     
