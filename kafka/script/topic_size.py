@@ -3,11 +3,11 @@
 import os, json, sys, common, logging, time
 
 output_directory = "./output"
-kafka_log_path = "/tmp/kafka-logs"
+kafka_log_path = "/home/youraj/python-ws/kafka-logs"
+note = "Disk utilization in Byte format"
 folder_info = {}
 folder_arr = []
 total_disk_utilized = 0
-retention_period = 60
 
 logging.basicConfig(filename="kafka_topic_size.log", level=logging.INFO)
 logging.info("----------------Script Started-----------------")
@@ -19,15 +19,12 @@ def init_input_args():
     if len(sys.argv) > 1:
         kafka_log_path = sys.argv[1]
     if len(sys.argv) > 2:
-        output_directory = sys.argv[2]
-    if len(sys.argv) > 3:
-        retention_period = int(sys.argv[1])        
+        output_directory = sys.argv[2]        
 
 init_input_args()
 
 logging.info("Kafka Log Path Directory="+kafka_log_path)
 logging.info("Script Output Directory="+output_directory)
-logging.info("Retention Period="+str(retention_period))
 
 # create output directory
 if not os.path.exists(output_directory):
@@ -64,6 +61,10 @@ for folder in dirs:
     path = kafka_log_path+"/"+folder
     folder_size = get_size(path)
     topic_name = get_topic_name(folder)
+    # ignore other folder which is not partition
+    if "-" not in folder:
+        total_disk_utilized -= folder_size
+        continue 
     logging.info(path + ":" +str(folder_size)) 
     if topic_name not in folder_info:
         folder_info[topic_name]=folder_size
@@ -81,44 +82,19 @@ def format_output():
     logging.info("Total Disk Utilized="+str(total_disk_utilized))
     for topic_name in folder_info:
         value = folder_info[topic_name]
-        percent_value = (value*100)/(total_disk_utilized)
-        logging.info(topic_name+" : "+ str(value)+",percentage="+str(percent_value))
-        percent_value = round(percent_value, 2)
-        topic = common.Topic(topic_name, percent_value)
+        percent_value = (value*100.0)/(total_disk_utilized*1.0)
+        logging.info("Topic Name="+topic_name+" ,Utilization="+ str(value)+" ,Percentage="+str(percent_value))
+        topic = common.Topic(topic_name, percent_value, value)
         topics.append(topic)
 
     host_name, host_ip = common.get_Host_name_IP()
     
-    inf = common.Output(host_name,host_ip,common.get_current_time(), total_disk_utilized, topics)
+    inf = common.Output(host_name,host_ip,common.get_current_time(), total_disk_utilized, topics, note)
     output_data = json.dumps(inf, default=lambda o: o.__dict__)
-    file_name = output_directory+"/"+common.get_file_name()+".json"
+    file_name = output_directory+"/"+common.get_file_name()+"."+host_name+".json"
     common.create_output_file(file_name,output_data)
 
 format_output()
-
-# init retention offset value
-retention_offset=time.time()-retention_period*24*60*60
-
-# get all old files (retantion policy expired)
-def get_old_files():
-    file_arr = []
-    for _, _, filenames in os.walk(output_directory):
-        for f in filenames:
-            file_timestamp=int(str(f).split(".")[0])
-            if file_timestamp<retention_offset:
-                file_arr.append(str(f))
-            
-    return file_arr
-
-# delete all the expired files (retention days)
-def delete_expired_files():
-    old_files=get_old_files()
-    for f in old_files:
-        path = output_directory+"/"+f
-        os.remove(path)
-        logging.info("File Deleted ="+path)
-
-delete_expired_files()        
 
 logging.info("-------------Script Ended-------------")
 
